@@ -18,7 +18,7 @@ const double deps = 0.00001;
 
 
 bool test_linear_scan(const std::string fname, bool verbose, const double eps) {
-    std::cout << "Testing the function defeatist()...\t\t\n";
+    std::cout << "Testing the function linear_scan()...\t\t\n";
     std::cout << "  Using data from the file " << fname << std::endl;
 
     std::ifstream in(fname, std::ios_base::in);
@@ -39,15 +39,6 @@ bool test_linear_scan(const std::string fname, bool verbose, const double eps) {
             in >> P[i][j];    
         }
     }    
-    std::cout << "Building kd-tree..." << std::flush;
-    node* tree = build(P, 0, N, 0, dim);
-    if (tree == NULL) {
-        std::cout << "\n Some functions are not implemented " << std::endl; 
-            std::cout << "[NOK]" << std::endl;
-            return 0;
-    }
-    std::cout << " done" << std::endl;
-
     
     point q = new double[dim];
     int nb_errors = 0;
@@ -57,13 +48,8 @@ bool test_linear_scan(const std::string fname, bool verbose, const double eps) {
         double adist;
         in >> aidx >> adist;
         
-        double cdist = DBL_MAX;
-        int cidx = -1;
-        defeatist_search(tree, q, dim, P, cdist, cidx);
-        int a = linear_scan(q, dim, P, N);
-        // std::cerr << aidx << " " << a << " " << cidx << " | " << dist(q, P[aidx], dim) << " " << dist(q, P[a], dim) << " " << dist(q, P[cidx], dim) << " -> " << adist << endl;
-        std::cout << "adist : " << adist << " - cdist :" << cdist << " - linear scan dist : " << dist(q, P[a], dim)
-                      << " - aidx dist : " << dist(q, P[aidx], dim) << endl;
+        int cidx = linear_scan(q, dim, P, N);
+  
         if (aidx != cidx) { 
             nb_errors++;
         }
@@ -73,12 +59,13 @@ bool test_linear_scan(const std::string fname, bool verbose, const double eps) {
             print_point(q, dim);
             std::cout << "the NN has index : (actual, computed) = ( " 
             << aidx << ", " << cidx  << ")" << endl;
+
          }
     }
 
     delete[] q;
 
-    cout << "   #errors = " << nb_errors << " in defeatist search" << endl;
+    cout << "   #errors = " << nb_errors << " in linear_scan search" << endl;
     bool success = (nb_errors == 0);
     std::cout << (success ? "[OK]" : "[NOK]") << std::endl;
     return success;
@@ -86,9 +73,9 @@ bool test_linear_scan(const std::string fname, bool verbose, const double eps) {
 
 void print_help_msg() {
   std::cout << std::endl
-            << "USAGE: To test your implementation of the defeatist search algorithm run the program as follows:" << std::endl
+            << "USAGE: To test your implementation of the linear_scan search algorithm run the program as follows:" << std::endl
             << std::endl
-             << " ./test_defeatist <mode> <verbose> <epsilon>" << std::endl
+             << " ./test_linear_scan <mode> <verbose> <epsilon>" << std::endl
             << std::endl
             << "All the parameters are optional but you have give them in that order." << std::endl
             << "<mode>      - could be 0 or 1 - ," << std::endl
@@ -118,10 +105,10 @@ int main(int argc, char* argv[]) {
     const double eps = (argc > arg) ? std::stod(argv[arg]) : deps;
 
     if (mode) {
-        test_linear_scan("./tests/def-1000-100-100.dat", verbose, eps);
-        test_linear_scan("./tests/def-1000-300-100.dat", verbose, eps);
+        test_linear_scan("./tests/ls-1000-100-100.dat", verbose, eps);
+        test_linear_scan("./tests/ls-1000-300-100.dat", verbose, eps);
     } else {
-        test_linear_scan("./my_tests/t_def.dat", verbose, eps);
+        test_linear_scan("./my_tests/t_ls.dat", verbose, eps);
     }
 
     return 0;

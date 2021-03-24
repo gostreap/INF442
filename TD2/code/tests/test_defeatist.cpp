@@ -60,10 +60,7 @@ bool test_linear_scan(const std::string fname, bool verbose, const double eps) {
         double cdist = DBL_MAX;
         int cidx = -1;
         defeatist_search(tree, q, dim, P, cdist, cidx);
-        int a = linear_scan(q, dim, P, N);
-        // std::cerr << aidx << " " << a << " " << cidx << " | " << dist(q, P[aidx], dim) << " " << dist(q, P[a], dim) << " " << dist(q, P[cidx], dim) << " -> " << adist << endl;
-        std::cout << "adist : " << adist << " - cdist :" << cdist << " - linear scan dist : " << dist(q, P[a], dim)
-                      << " - aidx dist : " << dist(q, P[aidx], dim) << endl;
+
         if (aidx != cidx) { 
             nb_errors++;
         }

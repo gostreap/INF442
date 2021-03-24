@@ -55,15 +55,12 @@ bool test_partition(const std::string fname, bool verbose, const double eps) {
         // Check if to the left of median the elements are <=
         for (int j = s; j <= idx_median; j++) {
             if (Q[j][c] > cmedian) {
-                std::cerr << "partition error : " << j << " - " << idx_median << " | " << cmedian << " - " << Q[j][c];
                 nb_errors_p++;
             }
         }
-
         // Check if to the right of median the elements are >
         for (int j = idx_median + 1; j < e; j++) {
             if (Q[j][c] < cmedian) {
-                std::cerr << "partition error : " << j << " - " << idx_median << " | " << cmedian << " - " << Q[j][c];
                 nb_errors_p++;
             }
         }

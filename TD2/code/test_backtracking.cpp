@@ -6,16 +6,13 @@
 
 #include "retrieval.hpp"
 
-using std::cout;
 using std::cin;
+using std::cout;
 using std::endl;
 
 const bool dmode = 0;
 const bool dverbose = 0;
 const double deps = 0.00001;
-
-
-
 
 bool test_linear_scan(const std::string fname, bool verbose, const double eps) {
     std::cout << "Testing the function backtracking_search()...\t\t\n";
@@ -23,9 +20,9 @@ bool test_linear_scan(const std::string fname, bool verbose, const double eps) {
 
     std::ifstream in(fname, std::ios_base::in);
 
-    int N;    // number of points
-    int dim;  // dimension
-    int T;    // number of tests
+    int N;   // number of points
+    int dim; // dimension
+    int T;   // number of tests
     in >> N;
     in >> dim;
     std::cout << "  " << N << " #points in dimension " << dim << std::endl;
@@ -36,46 +33,57 @@ bool test_linear_scan(const std::string fname, bool verbose, const double eps) {
     for (int i = 0; i < N; i++) {
         P[i] = new double[dim];
         for (int j = 0; j < dim; j++) {
-            in >> P[i][j];    
+            in >> P[i][j];
         }
-    }    
+    }
     std::cout << "Building kd-tree..." << std::flush;
-    node* tree = build(P, 0, N, 0, dim);
+    node *tree = build(P, 0, N, 0, dim);
     if (tree == NULL) {
-        std::cout << "\n Some functions are not implemented " << std::endl; 
-            std::cout << "[NOK]" << std::endl;
-            return 0;
+        std::cout << "\n Some functions are not implemented " << std::endl;
+        std::cout << "[NOK]" << std::endl;
+        return 0;
     }
     std::cout << " done" << std::endl;
 
-    
     point q = new double[dim];
     int nb_errors = 0;
+    int dist_error = 0;
     for (int t = 0; t < T; t++) {
-        for (int j = 0; j < dim; j++) { in >> q[j]; }
-        int aidx; 
+        for (int j = 0; j < dim; j++) {
+            in >> q[j];
+        }
+        int aidx;
         double adist;
         in >> aidx >> adist;
-        
+
         double cdist = DBL_MAX;
         int cidx = -1;
 
         backtracking_search(tree, q, dim, P, cdist, cidx);
-
-        if (aidx != cidx) { 
+        
+        if (fabs(adist - cdist) > 0.0001) {
+            dist_error++;
+        }
+        if (aidx != cidx) {
             nb_errors++;
         }
         if (verbose) {
-            std::cout << std::endl
-                      << "(" << t << ")  For the query point " << std::endl;
+            std::cout << std::endl << "(" << t << ")  For the query point " << std::endl;
             print_point(q, dim);
-            std::cout << "the NN has index : (actual, computed) = ( " 
-            << aidx << ", " << cidx  << ") " << endl;
-         }
+            std::cout << "the NN has index : (actual, computed) = ( " << aidx << ", " << cidx << ") " << endl;
+            int a = linear_scan(q, dim, P, N);
+            std::cout << "adist : " << adist << " - cdist :" << cdist << " - linear scan dist : " << dist(q, P[a], dim)
+                      << " - aidx dist : " << dist(q, P[aidx], dim) << endl;
+        }
+
+        // std::cerr << aidx << " " << a << " " << cidx << " | " << dist(q, P[aidx], dim) << " " << dist(q, P[a], dim)
+        // << " " << dist(q, P[cidx], dim) << " " << cdist << " -> " << adist << " -> " << fabs(adist - dist(q, P[cidx],
+        // dim)) << endl;
     }
 
     delete[] q;
 
+    std::cerr << "   #dist errors " << dist_error << endl;
     cout << "   #errors = " << nb_errors << " in backtracking search" << endl;
     bool success = (nb_errors == 0);
     std::cout << (success ? "[OK]" : "[NOK]") << std::endl;
@@ -83,29 +91,31 @@ bool test_linear_scan(const std::string fname, bool verbose, const double eps) {
 }
 
 void print_help_msg() {
-  std::cout << std::endl
-            << "USAGE: To test your implementation of the lbacktracking search algorithm run the program as follows:" << std::endl
-            << std::endl
-             << " ./test_backtracking <mode> <verbose> <epsilon>" << std::endl
-            << std::endl
-            << "All the parameters are optional but you have give them in that order." << std::endl
-            << "<mode>      - could be 0 or 1 - ," << std::endl
-            << "\t    0 runs the program with input from file ./my_tests/t_ls.dat" << std::endl
-            << "\t    1 runs the program with input from the files in ./tests/" << std::endl
-            << "\t    default value is " << dmode << std::endl
-            << std::endl
-            << "<verbose>   - could be 0 or 1 - ," << std::endl
-            << "\t    0  prints no info on the data set it computes with" << std::endl
-            << "\t    1  prints info on the data set it computes with" << std::endl
-            << "\t    default value is " << dverbose << std::endl
-            << std::endl
-            << "<epsilon>   - a double number, which defines the comparison sensitivity" << std::endl
-            << "\t    for doubles, default is " << deps << std::endl
-            << std::endl << std::endl;
+    std::cout << std::endl
+              << "USAGE: To test your implementation of the lbacktracking search algorithm run the program as follows:"
+              << std::endl
+              << std::endl
+              << " ./test_backtracking <mode> <verbose> <epsilon>" << std::endl
+              << std::endl
+              << "All the parameters are optional but you have give them in that order." << std::endl
+              << "<mode>      - could be 0 or 1 - ," << std::endl
+              << "\t    0 runs the program with input from file ./my_tests/t_ls.dat" << std::endl
+              << "\t    1 runs the program with input from the files in ./tests/" << std::endl
+              << "\t    default value is " << dmode << std::endl
+              << std::endl
+              << "<verbose>   - could be 0 or 1 - ," << std::endl
+              << "\t    0  prints no info on the data set it computes with" << std::endl
+              << "\t    1  prints info on the data set it computes with" << std::endl
+              << "\t    default value is " << dverbose << std::endl
+              << std::endl
+              << "<epsilon>   - a double number, which defines the comparison sensitivity" << std::endl
+              << "\t    for doubles, default is " << deps << std::endl
+              << std::endl
+              << std::endl;
 }
 
-int main(int argc, char* argv[]) {
-     // Read in the arguments
+int main(int argc, char *argv[]) {
+    // Read in the arguments
     print_help_msg();
 
     int arg = 1;

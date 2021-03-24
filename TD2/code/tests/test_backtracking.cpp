@@ -18,7 +18,7 @@ const double deps = 0.00001;
 
 
 bool test_linear_scan(const std::string fname, bool verbose, const double eps) {
-    std::cout << "Testing the function defeatist()...\t\t\n";
+    std::cout << "Testing the function backtracking_search()...\t\t\n";
     std::cout << "  Using data from the file " << fname << std::endl;
 
     std::ifstream in(fname, std::ios_base::in);
@@ -59,11 +59,9 @@ bool test_linear_scan(const std::string fname, bool verbose, const double eps) {
         
         double cdist = DBL_MAX;
         int cidx = -1;
-        defeatist_search(tree, q, dim, P, cdist, cidx);
-        int a = linear_scan(q, dim, P, N);
-        // std::cerr << aidx << " " << a << " " << cidx << " | " << dist(q, P[aidx], dim) << " " << dist(q, P[a], dim) << " " << dist(q, P[cidx], dim) << " -> " << adist << endl;
-        std::cout << "adist : " << adist << " - cdist :" << cdist << " - linear scan dist : " << dist(q, P[a], dim)
-                      << " - aidx dist : " << dist(q, P[aidx], dim) << endl;
+
+        backtracking_search(tree, q, dim, P, cdist, cidx);
+
         if (aidx != cidx) { 
             nb_errors++;
         }
@@ -72,13 +70,13 @@ bool test_linear_scan(const std::string fname, bool verbose, const double eps) {
                       << "(" << t << ")  For the query point " << std::endl;
             print_point(q, dim);
             std::cout << "the NN has index : (actual, computed) = ( " 
-            << aidx << ", " << cidx  << ")" << endl;
+            << aidx << ", " << cidx  << ") " << endl;
          }
     }
 
     delete[] q;
 
-    cout << "   #errors = " << nb_errors << " in defeatist search" << endl;
+    cout << "   #errors = " << nb_errors << " in backtracking search" << endl;
     bool success = (nb_errors == 0);
     std::cout << (success ? "[OK]" : "[NOK]") << std::endl;
     return success;
@@ -86,9 +84,9 @@ bool test_linear_scan(const std::string fname, bool verbose, const double eps) {
 
 void print_help_msg() {
   std::cout << std::endl
-            << "USAGE: To test your implementation of the defeatist search algorithm run the program as follows:" << std::endl
+            << "USAGE: To test your implementation of the lbacktracking search algorithm run the program as follows:" << std::endl
             << std::endl
-             << " ./test_defeatist <mode> <verbose> <epsilon>" << std::endl
+             << " ./test_backtracking <mode> <verbose> <epsilon>" << std::endl
             << std::endl
             << "All the parameters are optional but you have give them in that order." << std::endl
             << "<mode>      - could be 0 or 1 - ," << std::endl
@@ -118,10 +116,10 @@ int main(int argc, char* argv[]) {
     const double eps = (argc > arg) ? std::stod(argv[arg]) : deps;
 
     if (mode) {
-        test_linear_scan("./tests/def-1000-100-100.dat", verbose, eps);
-        test_linear_scan("./tests/def-1000-300-100.dat", verbose, eps);
+        test_linear_scan("./tests/back-1000-100-100.dat", verbose, eps);
+        test_linear_scan("./tests/back-1000-300-100.dat", verbose, eps);
     } else {
-        test_linear_scan("./my_tests/t_def.dat", verbose, eps);
+        test_linear_scan("./my_tests/t_back.dat", verbose, eps);
     }
 
     return 0;

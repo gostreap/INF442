@@ -116,7 +116,7 @@ int partition(point *P, int start, int end, int c, int dim) {
 
 	point *idx = std::partition(P + start, P + end, [&m, &c](point &p) { return p[c] < m; });
 
-	return idx - P - 1;
+	return idx - P;
 }
 
 typedef struct node { // node for the kd-tree
