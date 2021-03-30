@@ -23,8 +23,7 @@ class point {
     int label;
 
     point() {
-        coords = new double[d];
-        std::fill_n(coords, d, 0);
+        coords = new double[d]{0};
         label = 0;
     }
 
@@ -46,6 +45,23 @@ class point {
 };
 
 int point::d;
+
+void test_point() {
+    point::d = 3;
+    point q1, q2;
+    q1.print();
+    q2.print();
+    q1.coords[0] = 1;
+    q1.coords[1] = 1;
+    q1.coords[2] = 1;
+    q1.print();
+    std::cout << q1.squared_dist(q2) << std::endl;
+    q2.coords[0] = 3;
+    q2.coords[1] = 4;
+    q2.coords[2] = 5;
+    q2.print();
+    std::cout << q1.squared_dist(q2) << std::endl;
+}
 
 class cloud {
   private:
@@ -119,10 +135,6 @@ class cloud {
             dist = points[i].squared_dist(centers[points[i].label]);
             for (int j = 0; j < k; j++) {
                 // std::cerr << i << " " << j << std::endl;
-                // std::cerr << points[i].coords[3] << std::endl;
-                // if (i < 20)
-                // std::cerr << j << " " << centers[j].coords[3] << std::endl;
-                // double d = centers[j].coords[3];
                 if (dist > points[i].squared_dist(centers[j])) {
                     count++;
                     points[i].label = j;
@@ -134,7 +146,8 @@ class cloud {
     }
 
     void set_centroid_centers() {
-        double centers_coord[k][d];
+        std::cerr << d << std::endl;
+        double centers_coord[k][d] = {0};
         int count[k] = {0};
         for (int i = 0; i < nmax; i++) {
             count[points[i].label] += 1;
@@ -142,12 +155,10 @@ class cloud {
                 centers_coord[points[i].label][j] += points[i].coords[j];
             }
         }
-        double pos;
         for (int i = 0; i < k; i++) {
             if (count[i] != 0) {
                 for (int j = 0; j < d; j++) {
-                    pos = centers_coord[i][j] / count[i];
-                    centers[i].coords[j] = pos;
+                    centers[i].coords[j] = centers_coord[i][j] / count[i];
                 }
             }
         }
@@ -159,7 +170,6 @@ class cloud {
         int change = 1;
         while (change != 0) {
             change = set_voronoi_labels();
-            std::cerr << "run" << std::endl;
             set_centroid_centers();
         }
     }
@@ -244,25 +254,50 @@ class cloud {
             points[i].label = rand() % k;
         }
     }
-};
-// test functions
-void test_point() {
-    point::d = 3;
-    point q1, q2;
-    q1.print();
-    q2.print();
-    q1.coords[0] = 1;
-    q1.coords[1] = 1;
-    q1.coords[2] = 1;
-    q1.print();
-    std::cout << q1.squared_dist(q2) << std::endl;
-    q2.coords[0] = 3;
-    q2.coords[1] = 4;
-    q2.coords[2] = 5;
-    q2.print();
-    std::cout << q1.squared_dist(q2) << std::endl;
-}
 
+    void silhouette() {
+		int MAX = k;
+        double a[MAX];
+        int count[MAX];
+        double min, max;
+        double total = 0;
+
+        for (int i = 1; i < MAX; i++) {
+			k = i;
+            kmeans();
+            total = 0;
+            for (int j = 0; j < nmax; j++) {
+                // std::cerr << "####" << std::endl;
+                for (int l = 0; l < i; l++) {
+                    a[l] = 0;
+                    count[l] = 0;
+                }
+                for (int l = 0; l < nmax; l++) {
+                    if (l != j) {
+                        count[points[l].label]++;
+                        a[points[l].label] += points[j].squared_dist(points[l]);
+                    }
+                }
+                min = DBL_MAX;
+                for (int l = 0; l < i; l++) {
+                    // std::cerr << "count " << l << " - " << count[l] << " " << a[l] << std::endl;
+                    a[l] = ((count[l] != 0) ? (a[l] / count[l]) : DBL_MAX);
+                    // std::cerr << "val " << l << " - " << a[l] << std::endl;
+                    if (l != points[j].label && a[l] != 0) {
+                        min = std::min(min, a[l]);
+                    }
+                }
+                max = std::max(min, a[points[j].label]);
+                // std::cerr << min << " " << a[points[j].label] << " " << max << " -> " << (min - a[points[j].label]) / max << std::endl;
+                total += (min - a[points[j].label]) / max;
+            }
+            std::cerr << i << " - " << total << " " << total / nmax << std::endl;
+            total = total / nmax;
+        }
+    }
+};
+
+// test functions
 void test_intracluster_variance() {
     // tolerance for comparison of doubles
     const double eps = 0.0001;
@@ -537,6 +572,7 @@ int nb_columns(const std::string &line) { return std::count(line.begin(), line.e
 
 int main(int argc, char **argv) {
     bool run_tests = false;
+    // test_point();
 
     if (argc < 5 || argc > 6) {
         std::cerr << "Usage: " << argv[0] << " csv nb_clusters x_column y_column [ test ]" << std::endl;
@@ -553,14 +589,13 @@ int main(int argc, char **argv) {
     srand(time(NULL));
 
     if (run_tests) {
-        // test_point();
         test_intracluster_variance();
         test_set_voronoi_labels();
-        test_set_centroid_centers();
-        test_kmeans();
-        test_init_forgy();
-        test_init_plusplus();
-        test_init_random_partition();
+        // test_set_centroid_centers();
+        // test_kmeans();
+        // test_init_forgy();
+        // test_init_plusplus();
+        // test_init_random_partition();
     }
 
     // open data file
@@ -605,41 +640,43 @@ int main(int argc, char **argv) {
         // consume \n
         is.get();
     }
-    double test = c.intracluster_variance();
+
     // execute k-means algorithm
-    std::cout << "Intracluster variance before k-means: " << c.intracluster_variance() << std::endl;
-    c.kmeans();
-    std::cout << "Intracluster variance after k-means: " << c.intracluster_variance() << std::endl;
+    for (int i = 0; i < 1; i++) {
 
-    // std::cout << "Saving clustering into \"output.csv\"... ";
-    // std::ofstream os("output.csv");
-    // assert(os.is_open());
-    // os << header_line << '\n';
-    // for (int i = 0; i < c.get_n(); ++i) {
-    //     for (int j = 0; j < c.get_d(); ++j) {
-    //         os << c.get_point(i).coords[j] << '\t';
-    //     }
-    //     os << names[i] << "_Label_" << c.get_point(i).label;
-    //     if (i != c.get_n() - 1)
-    //         os << '\n';
-    // }
-    // std::cout << "done" << std::endl;
+        std::cout << "Intracluster variance before k-means: " << c.intracluster_variance() << std::endl;
+        // c.kmeans();
+        // c.silhouette();
+        std::cout << "Intracluster variance after k-means: " << c.intracluster_variance() << std::endl;
+    }
 
-    // os.close();
+    std::cout << "Saving clustering into \"output.csv\"... ";
+    std::ofstream os("output.csv");
+    assert(os.is_open());
+    os << header_line << '\n';
+    for (int i = 0; i < c.get_n(); ++i) {
+        for (int j = 0; j < c.get_d(); ++j) {
+            os << c.get_point(i).coords[j] << '\t';
+        }
+        os << names[i] << "_Label_" << c.get_point(i).label;
+        if (i != c.get_n() - 1)
+            os << '\n';
+    }
+    std::cout << "done" << std::endl;
 
-    // // launch graphical interface
-    // int gtk_argc = 1;
-    // Glib::RefPtr<Gtk::Application> app = Gtk::Application::create(gtk_argc, argv, "inf442.td3");
+    // launch graphical interface
+    int gtk_argc = 1;
+    Glib::RefPtr<Gtk::Application> app = Gtk::Application::create(gtk_argc, argv, "inf442.td3");
 
-    // Gtk::Window win;
-    // win.set_title("TD 3");
-    // win.set_default_size(400, 400);
+    Gtk::Window win;
+    win.set_title("TD 3");
+    win.set_default_size(400, 400);
 
-    // MyArea area(&c, x_column, y_column);
-    // win.add(area);
-    // area.show();
+    MyArea area(&c, x_column, y_column);
+    win.add(area);
+    area.show();
 
-    // return app->run(win);
+    return app->run(win);
 }
 
 bool MyArea::on_draw(const Cairo::RefPtr<Cairo::Context> &cr) {

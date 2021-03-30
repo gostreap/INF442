@@ -31,6 +31,9 @@
 *.out
 *.app
 
-#valgrind
+# valgrind
 
 vgcore.*
+
+# vscode
+.vscode/
