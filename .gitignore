@@ -34,3 +34,5 @@
 #valgrind
 
 vgcore.*
+
+.vscode
