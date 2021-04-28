@@ -3,9 +3,9 @@
 class point {// this is just a declaration of the class 
              // implementation is in a separate file: point.cpp
 private:
+    static int d;
   
 public:
-    static int d; 
     double *coords;
     int label;
 

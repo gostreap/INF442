@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = --std=c++11
+CXXFLAGS = --std=c++11 -g -Wall -Wextra
 ifneq ($(OS), Windows_NT)    
     UNAME_S := $(shell uname -s)
     ifeq ($(UNAME_S), Darwin)

@@ -1,5 +1,6 @@
 #include "cloud.hpp"
 
+#include <iostream>
 #include <cassert>
 #include <cfloat>	// for DBL_MAX
 #include <cstdlib>	// for rand, srand
@@ -62,7 +63,6 @@ double cloud::intracluster_variance() {
     double sum = 0.0;
     for(int i = 0; i < n; i++)
         sum += points[i].squared_dist(centers[points[i].label]);
-
     return sum / n;
 }
 

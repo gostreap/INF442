@@ -14,6 +14,51 @@
 #include <gtkmm/window.h>
 #include <gtkmm/drawingarea.h>
 
+//@OFF
+class point
+{
+	public:
+
+	static int d;
+	double *coords;
+	int label;
+
+	point()
+	{
+		coords = new double[d];
+		for(int m = 0; m < d; m++)
+			coords[m] = 0.0;
+		label = 0;
+	}
+
+	~point()
+	{
+		delete[] coords;
+	}
+
+	void print()
+	{
+		std::cout << coords[0];
+
+		for (int j = 1; j < d; j++)
+			std::cout << '\t' << coords[j];
+
+		std::cout << std::endl;
+	}
+
+	double squared_dist(point &q)
+	{
+		double sqd = 0.0;
+
+		for (int m = 0; m < d; m++)
+			sqd += (coords[m]-q.coords[m]) * (coords[m]-q.coords[m]);
+
+		return sqd;
+	}
+};
+
+int point::d;
+//@ON
 
 class cloud
 {
@@ -95,32 +140,201 @@ class cloud
 
 	double intracluster_variance()
 	{
+		//@OFF
+		double sum = 0.0;
+		for(int i = 0; i < n; i++)
+		{
+			sum += points[i].squared_dist(centers[points[i].label]);
+		}
+
+		return sum / n;
+		//@ON
 	}
 
 	int set_voronoi_labels()
 	{
+		//@OFF
+		int *old_labels = new int[n];
+
+		for(int i = 0; i < n; i++)
+			old_labels[i] = points[i].label;
+
+		for(int i = 0; i < n; i++)
+		{
+			double min_sq_dist = DBL_MAX;
+			int min_ind = -1;
+
+			for(int j = 0; j < k; j++)
+			{
+				if(points[i].squared_dist(centers[j]) < min_sq_dist)
+				{
+					min_sq_dist = points[i].squared_dist(centers[j]);
+					min_ind = j;
+				}
+			}
+
+			points[i].label = min_ind;
+		}
+
+		int nb_changed_labels = 0;
+		for(int i = 0; i < n; i++)
+			if(points[i].label != old_labels[i])
+				nb_changed_labels++;
+
+		delete[] old_labels;
+
+		return nb_changed_labels;
+		//@ON
 		
-		return 0;
+		// @@ return 0;
 	}
 
 	void set_centroid_centers()
 	{
+		//@OFF
+		int *counts = new int[k];
+		for(int j = 0; j < k; j++)
+			counts[j] = 0;
+		for(int i = 0; i < n; i++)
+			counts[points[i].label]++;
+
+
+		for(int j = 0; j < k; j++)
+			if(counts[j] != 0)
+				for(int m = 0; m < d; m++)
+					centers[j].coords[m] = 0.0;
+
+		for(int i = 0; i < n; i++)
+		{
+			for(int m = 0; m < d; m++)
+				centers[points[i].label].coords[m] += points[i].coords[m];
+		}
+
+		for(int j = 0; j < k; j++)
+			if(counts[j] != 0)
+				for(int m = 0; m < d; m++)
+					centers[j].coords[m] /= counts[j];
+
+		delete[] counts;
+		//@ON
 	}
 
 	void kmeans()
 	{
+		//@OFF
+		// set_centroid_centers(); // trivial initialization
+		// init_forgy();
+		init_plusplus();
+		// init_random_partition();
+
+		bool stabilized = false;
+
+		while(!stabilized)
+		{
+			int nb_changed_labels = set_voronoi_labels();
+			set_centroid_centers();
+
+			stabilized = (nb_changed_labels == 0);
+		}
+		//@ON
 	}
 
 	void init_forgy()
 	{
+		//@OFF
+		int *already_chosen = new int[k];
+
+		for(int j = 0; j < k; j++)
+		{
+			// choose index i different from those already chosen
+			int i;
+			bool new_index = false;
+			while(!new_index)
+			{
+				i = rand() % n;
+
+				// check whether i was already chosen
+				new_index = true;
+				for(int r = 0; r < j; r++)
+					if(already_chosen[r] == i)
+					{
+						new_index = false;
+						break;
+					}
+			}
+
+			already_chosen[j] = i;
+
+			for(int m = 0; m < d; m++)
+				centers[j].coords[m] = points[i].coords[m];
+		}
+
+		delete[] already_chosen;
+		//@ON
 	}
 
 	void init_plusplus()
 	{
+		//@OFF
+		// choose first center
+		int i = rand() % n;
+		for(int m = 0; m < d; m++)
+			centers[0].coords[m] = points[i].coords[m];
+
+		// number of centers already chosen
+		int nb_already_chosen = 1;
+
+		// will hold squared distances to nearest already chosen center
+		double *distances = new double[n];
+
+		while(nb_already_chosen < k)
+		{
+			double sum_distances = 0.0;
+
+			// calculate squared distance to nearest already chosen center
+			for(i = 0; i < n; i++)
+			{
+				distances[i] = DBL_MAX;
+
+				for(int j = 0; j < nb_already_chosen; j++)
+					if(points[i].squared_dist(centers[j]) < distances[i])
+						distances[i] = points[i].squared_dist(centers[j]);
+
+				sum_distances += distances[i];
+			}
+
+
+			// choose random point proportional to square distance
+			double random = ((double)rand() / RAND_MAX) * sum_distances;
+			double prob_sum = 0.0;
+			i = 0;
+			while(prob_sum <= random && i < n)
+			{
+				prob_sum += distances[i];
+				i++;
+			}
+
+			// i-1 is now the index of the chosen point
+			for(int m = 0; m < d; m++)
+				centers[nb_already_chosen].coords[m] = points[i-1].coords[m];
+
+			nb_already_chosen++;
+		}
+
+		delete[] distances;
+		//@ON
 	}
 
 	void init_random_partition()
 	{
+		//@OFF
+		for(int i = 0; i < n; i++)
+		{
+			points[i].label = rand() % k;
+		}
+
+		set_centroid_centers();
+		//@ON
 	}
 };
 
