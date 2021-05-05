@@ -50,6 +50,8 @@ int main(int argc, char* argv[]) {
 
     // Test good entry
     confusion_matrix.AddPrediction(0,1);
+    cerr << confusion_matrix.GetFN() << endl;
+
     assert(("[NOK]", confusion_matrix.GetFN() == 0));
     assert(("[NOK]", confusion_matrix.GetFP() == 1));
     assert(("[NOK]", confusion_matrix.GetTN() == 1));
