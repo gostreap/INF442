@@ -1,5 +1,5 @@
 CXX? = g++
-CFLAGS = -Wall -Wconversion -O3 -fPIC
+CFLAGS = -Wall -Wconversion -g -O3 -fPIC
 SHVER = 1
 
 all: svm-train svm-predict svm-scale

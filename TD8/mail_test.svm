@@ -1,0 +1,2 @@
+Syntax: python preformat-libsvm.py <file_to_read> <file_to_write> [<id_label> <rest_of_cols> ['<char_sep>'] ]
+ <rest_of_cols> : columns to include in output file (ex: 1,2,3), starting in 1. Use - for including all.
